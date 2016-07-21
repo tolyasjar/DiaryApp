@@ -42,7 +42,7 @@ class PostListingTableViewController: UITableViewController, AddingNewPost, NSFe
             break
             
         case .Delete:
-            self.tableView.deleteRowsAtIndexPaths([newIndexPath!], withRowAnimation: .Automatic)
+            self.tableView.deleteRowsAtIndexPaths([indexPath!], withRowAnimation: .Automatic)
             break
             
         case .Update:
@@ -76,7 +76,10 @@ class PostListingTableViewController: UITableViewController, AddingNewPost, NSFe
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         
-            let addNewPostViewController: AddNewPostViewController = segue.destinationViewController as! AddNewPostViewController
+        guard let addNewPostViewController = segue.destinationViewController as? AddNewPostViewController else {
+            
+            fatalError("Destination controller not found!")
+        }
             
             addNewPostViewController.addingNewPostdelegate = self
         
@@ -110,11 +113,18 @@ class PostListingTableViewController: UITableViewController, AddingNewPost, NSFe
     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         if editingStyle == .Delete {
             
-            print("Should Delete the row")
-
-            // remove the deleted item from the `UITableView`
-            //self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+            print("Deleting the entry!")
             
+            let item = self.fetchedResultsController.objectAtIndexPath(indexPath)
+            self.managedObjectContext.deleteObject(item as! NSManagedObject)
+            
+            do {
+                try self.managedObjectContext.save()
+            } catch _ as NSError {
+                print ("Can not delete the item!")
+            }
+            
+
             
             return
         }
